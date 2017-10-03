@@ -13,10 +13,10 @@ namespace KingOfTheSky
         {
             Factory factory = new Factory();
             List<Ship> ships = new List<Ship>();
-            Hull[] hulls = { new Hull("Wooden", 200, 1.2), new Hull("Iron", 500, 1.5), new Hull("Steel", 1500, 2.0) };
-            Cannon[] cannons = { new Cannon("Ion Cannon", 300, 1.3, 100), new Cannon("Dragon Fire", 500, 2.0, 80) };
-            Torpedo[] torpedos = { new Torpedo("Blue Lightning", 500, 1.2, 90), new Torpedo("Black Thunder", 1000, 1.8, 70) };
-            Bomb[] bombs = { new Bomb( "Extra Cargo", 400, 1.3, 55), new Bomb("Dynamite", 600, 1.7, 75) };
+            Hull[] hulls = { new Hull("Wooden", 200, 120), new Hull("Iron", 500, 50), new Hull("Steel", 1500, 100) };
+            Cannon[] cannons = { new Cannon("Ion Cannon", 300, 30, 100), new Cannon("Dragon Fire", 500, 200, 80) };
+            Torpedo[] torpedos = { new Torpedo("Blue Lightning", 100, 60, 90), new Torpedo("Black Thunder", 1000, 90, 70) };
+            Bomb[] bombs = { new Bomb( "Extra Cargo", 400, 65, 55), new Bomb("Dynamite", 600, 85, 75) };
             Command commandCenter = new Command(factory, ships, hulls, cannons, torpedos, bombs);
             bool gameRunning = true;
 
@@ -51,7 +51,16 @@ namespace KingOfTheSky
         public void enterCommand()
         {
             Console.WriteLine("Enter Command Below:");
-            string[] command = Console.ReadLine().Split(' ');
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
             Console.WriteLine();
 
             if     ((command[0].ToLower() == "b" || command[0].ToLower() == "build") && command.Length >= 3)
@@ -80,8 +89,8 @@ namespace KingOfTheSky
                 Console.WriteLine("Ships in HQ:");
                 for (int i = 0; i < ships.Count; i++)
                 {
-                    Console.WriteLine((i+1) + ". " + ships[i].name + "\nStats: Lvl - " + ships[i].level + ", HP - " + ships[i].health + ", Spd - " + ships[i].speed);
-                    //Console.WriteLine("Hull: " + ships[i].hull.name + ", Cannon: " + ships[i].cannon.name + ", Torpedo: " + ships[i].torpedo.name + ", Bomb: " + ships[i].bomb.name);
+                    ships[i].getStats();
+                    ships[i].getEquiptmentStats();
                 }
                 Console.WriteLine();
             }
@@ -119,13 +128,53 @@ namespace KingOfTheSky
                     {
                         try
                         {
-                            ships[int.Parse(command[3]) - 1].hull = hulls[int.Parse(command[2]) - 1];
+                            ships[int.Parse(command[3]) - 1].equiptHull(hulls[int.Parse(command[2]) - 1]);
                             Console.WriteLine("The " + ships[int.Parse(command[3]) - 1].name + " has the " + hulls[int.Parse(command[2]) - 1].name + " Hull equipted\n");
                         }
                         catch(Exception e)
                         {
                             Console.WriteLine("The entered hull or ship does not exist");
                         }
+                    }
+                    else if (command[1].ToLower() == "c")
+                    {
+                        try
+                        {
+                            ships[int.Parse(command[3]) - 1].equiptCannon(cannons[int.Parse(command[2]) - 1]);
+                            Console.WriteLine("The " + ships[int.Parse(command[3]) - 1].name + " has the " + cannons[int.Parse(command[2]) - 1].name + " Cannon equipted\n");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("The entered cannon or ship does not exist");
+                        }
+                    }
+                    else if (command[1].ToLower() == "t")
+                    {
+                        try
+                        {
+                            ships[int.Parse(command[3]) - 1].equiptTorpedo(torpedos[int.Parse(command[2]) - 1]);
+                            Console.WriteLine("The " + ships[int.Parse(command[3]) - 1].name + " has the " + torpedos[int.Parse(command[2]) - 1].name + " Torpedo equipted\n");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("The entered torpedo or ship does not exist");
+                        }
+                    }
+                    else if (command[1].ToLower() == "b")
+                    {
+                        try
+                        {
+                            ships[int.Parse(command[3]) - 1].equiptBomb(bombs[int.Parse(command[2]) - 1]);
+                            Console.WriteLine("The " + ships[int.Parse(command[3]) - 1].name + " has the " + bombs[int.Parse(command[2]) - 1].name + " Bombs equipted\n");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("The entered bomb or ship does not exist");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid input");
                     }
                 }
             }
@@ -148,7 +197,7 @@ namespace KingOfTheSky
             Console.WriteLine("Available Hulls:");
             for (int i = 0; i < hulls.Length; i++)
             {
-                Console.WriteLine((i + 1) + ". " + hulls[i].name + ": HP - " + hulls[i].health + ", Weight - " + hulls[i].weight);
+                Console.WriteLine((i + 1) + ". " + hulls[i].name + ": Armor - " + hulls[i].armor + ", Weight - " + hulls[i].weight);
             }
             Console.WriteLine();
         }
@@ -220,6 +269,89 @@ namespace KingOfTheSky
         public Cannon cannon;
         public Torpedo torpedo;
         public Bomb bomb;
+
+        public void getStats()
+        {
+            Console.WriteLine("The " + this.name + " is level " + this.level + " and has " + this.health + " health, " + this.armor + " armor, and " + this.speed + " speed");
+        }
+
+        public void getEquiptmentStats()
+        {
+            if (this.hull != null)
+            {
+                Console.WriteLine("The " + this.name + " has the " + this.hull.name + " hull equipted which has " + this.hull.armor + " armor, and weighs " + this.hull.weight);
+            }
+            else
+            {
+                Console.WriteLine("The " + this.name + " does not have a cannon equipted");
+            }
+            if (this.cannon != null)
+            {
+                Console.WriteLine("The " + this.name + " has the " + this.cannon.name + " cannon equipted which has " + this.cannon.power + " power and " + this.cannon.accuracy + "% accuracy, and weighs " + this.cannon.weight);
+            }
+            else
+            {
+                Console.WriteLine("The " + this.name + " does not have a cannon equipted");
+            }
+            if (this.torpedo != null)
+            {
+                Console.WriteLine("The " + this.name + " has the " + this.torpedo.name + " torpedo equipted which has " + this.torpedo.power + " power and " + this.torpedo.accuracy + "% accuracy, and weighs " + this.torpedo.weight);
+            }
+            else
+            {
+                Console.WriteLine("The " + this.name + " does not have torpedos equipted");
+            }
+            if (this.bomb != null)
+            {
+                Console.WriteLine("The " + this.name + " has the " + this.bomb.name + " bomb equipted which has " + this.bomb.power + " power and " + this.bomb.accuracy + "% accuracy, and weighs " + this.bomb.weight);
+            }
+            else
+            {
+                Console.WriteLine("The " + this.name + " does not have bombs equipted");
+            }
+        }
+
+        public void equiptHull(Hull hull)
+        {
+            if (this.hull != null)
+            {
+                this.armor -= this.hull.armor;
+                this.speed += this.hull.weight;
+            }
+            this.hull = hull;
+            this.armor += hull.armor;
+            this.speed -= hull.weight;
+        }
+
+        public void equiptCannon(Cannon cannon)
+        {
+            if (this.cannon != null)
+            {
+                this.speed += this.cannon.weight;
+            }
+            this.cannon = cannon;
+            this.speed -= cannon.weight;
+        }
+
+        public void equiptTorpedo(Torpedo torpedo)
+        {
+            if (this.torpedo != null)
+            {
+                this.speed += this.torpedo.weight;
+            }
+            this.torpedo = torpedo;
+            this.speed -= torpedo.weight;
+        }
+
+        public void equiptBomb(Bomb bomb)
+        {
+            if (this.bomb != null)
+            {
+                this.speed += this.bomb.weight;
+            }
+            this.bomb = bomb;
+            this.speed -= bomb.weight;
+        }
     }
 
     class Glider : Ship
@@ -268,13 +400,13 @@ namespace KingOfTheSky
     class Hull
     {
         public string name;
-        public int health;
-        public double weight;
+        public int armor;
+        public int weight;
 
-        public Hull(string name, int health, double weight)
+        public Hull(string name, int health, int weight)
         {
             this.name = name;
-            this.health = health;
+            this.armor = health;
             this.weight = weight;
         }
     }
@@ -283,13 +415,13 @@ namespace KingOfTheSky
     {
         public string name;
         public int power;
-        public double weight;
+        public int weight;
         public short accuracy;
     }
 
     class Cannon : Weapon
     {
-        public Cannon(string name, int power, double weight, short accuracy)
+        public Cannon(string name, int power, int weight, short accuracy)
         {
             this.name = name;
             this.power = power;
@@ -300,7 +432,7 @@ namespace KingOfTheSky
 
     class Torpedo : Weapon
     {
-        public Torpedo(string name, int power, double weight, short accuracy)
+        public Torpedo(string name, int power, int weight, short accuracy)
         {
             this.name = name;
             this.power = power;
@@ -311,7 +443,7 @@ namespace KingOfTheSky
 
     class Bomb : Weapon
     {
-        public Bomb(string name, int power, double weight, short accuracy)
+        public Bomb(string name, int power, int weight, short accuracy)
         {
             this.name = name;
             this.power = power;
