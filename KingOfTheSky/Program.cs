@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace KingOfTheSky
+namespace King_Of_The_Sky
 {
     class Program
     {
@@ -283,7 +283,7 @@ namespace KingOfTheSky
             }
             else
             {
-                Console.WriteLine("The " + this.name + " does not have a cannon equipted");
+                Console.WriteLine("The " + this.name + " does not have a hull equipted");
             }
             if (this.cannon != null)
             {
