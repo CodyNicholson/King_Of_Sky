@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace King_Of_The_Sky
 {
@@ -12,7 +8,7 @@ namespace King_Of_The_Sky
         static void Main(string[] args)
         {
             Factory factory = new Factory();
-            List<Ship> ships = new List<Ship>();
+            Ship[] ships = new Ship[5];
             Hull[] hulls = { new Hull("Wooden", 200, 120), new Hull("Iron", 500, 50), new Hull("Steel", 1500, 100) };
             Cannon[] cannons = { new Cannon("Ion Cannon", 300, 30, 100), new Cannon("Dragon Fire", 500, 200, 80) };
             Torpedo[] torpedos = { new Torpedo("Blue Lightning", 100, 60, 90), new Torpedo("Black Thunder", 1000, 90, 70) };
@@ -32,13 +28,13 @@ namespace King_Of_The_Sky
     class Command
     {
         Factory factory;
-        List<Ship> ships;
+        Ship[] ships;
         Hull[] hulls;
         Cannon[] cannons;
         Torpedo[] torpedos;
         Bomb[] bombs;
 
-        public Command(Factory factory, List<Ship> ships, Hull[] hulls, Cannon[] cannons, Torpedo[] torpedos, Bomb[] bombs)
+        public Command(Factory factory, Ship[] ships, Hull[] hulls, Cannon[] cannons, Torpedo[] torpedos, Bomb[] bombs)
         {
             this.factory = factory;
             this.ships = ships;
@@ -73,24 +69,31 @@ namespace King_Of_The_Sky
 
                 if (command[1].ToLower() == "bomber" || command[1].ToLower() == "b")
                 {
-                    ships.Add(factory.createBomber(shipName));
+                    placeShipInArray(factory.createBomber(shipName));
                 }
                 else if (command[1].ToLower() == "crusier" || command[1].ToLower() == "c")
                 {
-                    ships.Add(factory.createCrusier(shipName));
+                    placeShipInArray(factory.createCrusier(shipName));
                 }
                 else if (command[1].ToLower() == "glider" || command[1].ToLower() == "g")
                 {
-                    ships.Add(factory.createGlider(shipName));
+                    placeShipInArray(factory.createGlider(shipName));
                 }
             }
             else if (command[0].ToLower() == "s" || command[0].ToLower() == "ship" || command[0].ToLower() == "ships")
             {
                 Console.WriteLine("Ships in HQ:");
-                for (int i = 0; i < ships.Count; i++)
+                for (int i = 0; i < ships.Length; i++)
                 {
-                    ships[i].getStats();
-                    ships[i].getEquiptmentStats();
+                    try
+                    {
+                        ships[i].getStats();
+                        ships[i].getEquiptmentStats();
+                    }
+                    catch (NullReferenceException e)
+                    {
+                        Console.WriteLine((i+1) + ". ~Empty~");
+                    }
                 }
                 Console.WriteLine();
             }
@@ -189,6 +192,27 @@ namespace King_Of_The_Sky
             else
             {
                 Console.WriteLine("The entered input did not match any of the available commands\n");
+            }
+        }
+
+        public void placeShipInArray(Ship newShip)
+        {
+            for (int i = 0; i < ships.Length; i++)
+            {
+                if(ships[i] == null)
+                {
+                    ships[i] = newShip;
+                    Console.WriteLine("The " + newShip.name + " is number " + (i+1) + " in your armada");
+                    return;
+                }
+            }
+            Console.WriteLine("Your armada is full. Enter the number of the ship you would like to replace, or enter anything else to cancel ship creation:");
+            String command2 = Console.ReadLine();
+            if(command2[0].Equals('1') || command2[0].Equals('2') || command2[0].Equals('3') || command2[0].Equals('4')  || command2[0].Equals('5'))
+            {
+                Console.WriteLine("The " + ships[int.Parse((command2[0]).ToString())-1]);
+                ships[int.Parse((command2[0]).ToString())-1] = newShip;
+
             }
         }
 
