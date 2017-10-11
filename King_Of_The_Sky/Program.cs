@@ -81,15 +81,15 @@ namespace King_Of_The_Sky
 
                     if (command[1].ToLower() == "bomber" || command[1].ToLower() == "b")
                     {
-                        placeShipInArray(factory.createBomber(shipName));
+                        currentPlayer.placeShipInArray(factory.createBomber(shipName));
                     }
                     else if (command[1].ToLower() == "crusier" || command[1].ToLower() == "c")
                     {
-                        placeShipInArray(factory.createCrusier(shipName));
+                        currentPlayer.placeShipInArray(factory.createCrusier(shipName));
                     }
                     else if (command[1].ToLower() == "glider" || command[1].ToLower() == "g")
                     {
-                        placeShipInArray(factory.createGlider(shipName));
+                        currentPlayer.placeShipInArray(factory.createGlider(shipName));
                     }
                 }
             }
@@ -97,7 +97,7 @@ namespace King_Of_The_Sky
             {
                 if (command.Length == 1)
                 {
-                    Console.WriteLine("Available Commands:\n<'ships'>              - View all ships in armada\n<'ships'> <'{number}'> - View specific deatils of one ship in armada\n<'ships'> <'equip'>   - Outfit your ships with equiptment\n\nShips in armada:");
+                    Console.WriteLine("Available Commands:\n<'ships'>              - View all ships in armada\n<'ships'> <'{number}'> - View specific deatils of one ship in armada\n<'ships'> <'equip'>    - Outfit your ships with equiptment\n\nShips in armada:");
                     for (int i = 0; i < currentPlayer.getShips().Length; i++)
                     {
                         try
@@ -125,28 +125,28 @@ namespace King_Of_The_Sky
                             "or 'torpedos' or 't' or 'bombs' or 'b'> - View available equiptment of input type\n<'ships'> <'hulls' or 'h'> " +
                             "or <'cannons' or 'c' or 'torpedos' or 't' or 'bombs' or 'b'> <'{equiptment number}'> <'{ship number}'> - Equipts " +
                             "the provided ship with the provided equiptment\n");
-                        listHulls();
-                        listCannons();
-                        listTorpedos();
-                        listBombs();
+                        inventory.listHulls(currentPlayer);
+                        inventory.listCannons(currentPlayer);
+                        inventory.listTorpedos(currentPlayer);
+                        inventory.listBombs(currentPlayer);
                     }
                     else if (command.Length == 3)
                     {
                         if (command[2].ToLower() == "h" || command[1].ToLower() == "hulls")
                         {
-                            listHulls();
+                            inventory.listHulls(currentPlayer);
                         }
                         else if (command[2].ToLower() == "c" || command[2].ToLower() == "cannons")
                         {
-                            listCannons();
+                            inventory.listCannons(currentPlayer);
                         }
                         else if (command[2].ToLower() == "t" || command[2].ToLower() == "torpedos")
                         {
-                            listTorpedos();
+                            inventory.listTorpedos(currentPlayer);
                         }
                         else if (command[2].ToLower() == "b" || command[2].ToLower() == "bombs")
                         {
-                            listBombs();
+                            inventory.listBombs(currentPlayer);
                         }
                     }
                     else if (command.Length == 5)
@@ -210,9 +210,25 @@ namespace King_Of_The_Sky
             {
 
             }
-            else if (command[0].ToLower() == "l" || command[0].ToLower() == "logout")
+            else if (command[0].ToLower() == "p" || command[0].ToLower() == "player")
             {
-                logout();
+                if(command.Length == 1)
+                {
+                    Console.WriteLine("KOS Players Include:");
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        Console.WriteLine("Captain " + players[i].getName());
+                    }
+                    Console.WriteLine("\nYou are currently signed in as Captain " + currentPlayer.getName() + "\n");
+                }
+                else if (command[1].ToLower() == "l" || command[1].ToLower() == "logout")
+                {
+                    logout();
+                }
+                else
+                {
+                    invalidInput();
+                }
             }
             else if (command[0].ToLower() == "q" || command[0].ToLower() == "quit" || command[0] == "")
             {
@@ -222,79 +238,6 @@ namespace King_Of_The_Sky
             {
                 invalidInput();
             }
-        }
-
-        public void placeShipInArray(Ship newShip)
-        {
-            for (int i = 0; i < currentPlayer.getShips().Length; i++)
-            {
-                if(currentPlayer.getShips()[i] == null)
-                {
-                    currentPlayer.getShips()[i] = newShip;
-                    Console.WriteLine("The " + newShip.getName() + " is number " + (i+1) + " in your armada\n");
-                    return;
-                }
-            }
-            Console.WriteLine("Your armada is full. Enter the number of the ship you would like to replace, or enter anything else to cancel ship creation:");
-            string command2 = Console.ReadLine();
-            if(command2[0].Equals('1') || command2[0].Equals('2') || command2[0].Equals('3') || command2[0].Equals('4')  || command2[0].Equals('5'))
-            {
-                Console.WriteLine("The " + currentPlayer.getShips()[int.Parse((command2[0]).ToString())-1]);
-                currentPlayer.getShips()[int.Parse((command2[0]).ToString())-1] = newShip;
-
-            }
-        }
-
-        public void listHulls()
-        {
-            Console.WriteLine("Available Hulls:");
-            for (int i = 0; i < inventory.getHulls().Length; i++)
-            {
-                if (currentPlayer.getLevel() >= inventory.getHulls()[i].getRequiredLevel())
-                {
-                    Console.WriteLine((i + 1) + ". " + inventory.getHulls()[i].getName() + ": Armor - " + inventory.getHulls()[i].getArmor() + ", Weight - " + inventory.getHulls()[i].getWeight());
-                }
-            }
-            Console.WriteLine();
-        }
-
-        public void listCannons()
-        {
-            Console.WriteLine("Available Cannons:");
-            for (int i = 0; i < inventory.getCannons().Length; i++)
-            {
-                if (currentPlayer.getLevel() >= inventory.getCannons()[i].getRequiredLevel())
-                {
-                    Console.WriteLine((i + 1) + ". " + inventory.getCannons()[i].getName() + ": Power - " + inventory.getCannons()[i].getPower() + ", Weight - " + inventory.getCannons()[i].getWeight() + ", Accuracy - " + inventory.getCannons()[i].getAccuracy());
-                }
-            }
-            Console.WriteLine();
-        }
-
-        public void listTorpedos()
-        {
-            Console.WriteLine("Available Torpedos:");
-            for (int i = 0; i < inventory.getTorpedos().Length; i++)
-            {
-                if (currentPlayer.getLevel() >= inventory.getTorpedos()[i].getRequiredLevel())
-                {
-                    Console.WriteLine((i + 1) + ". " + inventory.getTorpedos()[i].getName() + ": Power - " + inventory.getTorpedos()[i].getPower() + ", Weight - " + inventory.getTorpedos()[i].getWeight() + ", Accuracy - " + inventory.getTorpedos()[i].getAccuracy());
-                }
-            }
-            Console.WriteLine();
-        }
-
-        public void listBombs()
-        {
-            Console.WriteLine("Available Bombs:");
-            for (int i = 0; i < inventory.getBombs().Length; i++)
-            {
-                if (currentPlayer.getLevel() >= inventory.getBombs()[i].getRequiredLevel())
-                {
-                    Console.WriteLine((i + 1) + ". " + inventory.getBombs()[i].getName() + ": Power - " + inventory.getBombs()[i].getPower() + ", Weight - " + inventory.getBombs()[i].getWeight() + ", Accuracy - " + inventory.getBombs()[i].getAccuracy());
-                }
-            }
-            Console.WriteLine();
         }
 
         public void invalidInput()
@@ -351,6 +294,11 @@ namespace King_Of_The_Sky
                     loginOrSignUp();
                     return;
                 }
+                if (isUsernameTaken(username))
+                {
+                    loginOrSignUp();
+                    return;
+                }
                 else
                 {
                     Console.WriteLine("Enter password below:");
@@ -367,6 +315,7 @@ namespace King_Of_The_Sky
                         Player player = new Player(username, password);
                         players.Add(player);
                         currentPlayer = player;
+                        Console.WriteLine("Welcome to KOS Captain " + currentPlayer.getName() + "\n");
                     }
                 }
             }
@@ -375,6 +324,19 @@ namespace King_Of_The_Sky
         public bool doAccountsExist()
         {
             return players.Count > 0;
+        }
+
+        public bool isUsernameTaken(String username)
+        {
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (username.ToLower() == players[i].getName().ToLower())
+                {
+                    Console.WriteLine("Username '" + username.ToLower() + "' is taken by another user\n");
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void logout()
@@ -424,6 +386,27 @@ namespace King_Of_The_Sky
         {
             this.level = level;
         }
+
+        public void placeShipInArray(Ship newShip)
+        {
+            for (int i = 0; i < getShips().Length; i++)
+            {
+                if (getShips()[i] == null)
+                {
+                    getShips()[i] = newShip;
+                    Console.WriteLine("The " + newShip.getName() + " is number " + (i + 1) + " in your armada\n");
+                    return;
+                }
+            }
+            Console.WriteLine("Your armada is full. Enter the number of the ship you would like to replace, or enter anything else to cancel ship creation:");
+            string command2 = Console.ReadLine();
+            if (command2[0].Equals('1') || command2[0].Equals('2') || command2[0].Equals('3') || command2[0].Equals('4') || command2[0].Equals('5'))
+            {
+                Console.WriteLine("The " + getShips()[int.Parse((command2[0]).ToString()) - 1]);
+                getShips()[int.Parse((command2[0]).ToString()) - 1] = newShip;
+
+            }
+        }
     }
 
     class Inventory
@@ -459,6 +442,58 @@ namespace King_Of_The_Sky
         public Bomb[] getBombs()
         {
             return this.bombs;
+        }
+
+        public void listHulls(Player currentPlayer)
+        {
+            Console.WriteLine("Available Hulls:");
+            for (int i = 0; i < getHulls().Length; i++)
+            {
+                if (currentPlayer.getLevel() >= getHulls()[i].getRequiredLevel())
+                {
+                    Console.WriteLine((i + 1) + ". " + getHulls()[i].getName() + ": Armor - " + getHulls()[i].getArmor() + ", Weight - " + getHulls()[i].getWeight());
+                }
+            }
+            Console.WriteLine();
+        }
+
+        public void listCannons(Player currentPlayer)
+        {
+            Console.WriteLine("Available Cannons:");
+            for (int i = 0; i < getCannons().Length; i++)
+            {
+                if (currentPlayer.getLevel() >= getCannons()[i].getRequiredLevel())
+                {
+                    Console.WriteLine((i + 1) + ". " + getCannons()[i].getName() + ": Power - " + getCannons()[i].getPower() + ", Weight - " + getCannons()[i].getWeight() + ", Accuracy - " + getCannons()[i].getAccuracy());
+                }
+            }
+            Console.WriteLine();
+        }
+
+        public void listTorpedos(Player currentPlayer)
+        {
+            Console.WriteLine("Available Torpedos:");
+            for (int i = 0; i < getTorpedos().Length; i++)
+            {
+                if (currentPlayer.getLevel() >= getTorpedos()[i].getRequiredLevel())
+                {
+                    Console.WriteLine((i + 1) + ". " + getTorpedos()[i].getName() + ": Power - " + getTorpedos()[i].getPower() + ", Weight - " + getTorpedos()[i].getWeight() + ", Accuracy - " + getTorpedos()[i].getAccuracy());
+                }
+            }
+            Console.WriteLine();
+        }
+
+        public void listBombs(Player currentPlayer)
+        {
+            Console.WriteLine("Available Bombs:");
+            for (int i = 0; i < getBombs().Length; i++)
+            {
+                if (currentPlayer.getLevel() >= getBombs()[i].getRequiredLevel())
+                {
+                    Console.WriteLine((i + 1) + ". " + getBombs()[i].getName() + ": Power - " + getBombs()[i].getPower() + ", Weight - " + getBombs()[i].getWeight() + ", Accuracy - " + getBombs()[i].getAccuracy());
+                }
+            }
+            Console.WriteLine();
         }
     }
 
