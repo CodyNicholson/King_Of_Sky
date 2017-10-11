@@ -8,7 +8,8 @@ namespace King_Of_The_Sky
         static void Main(string[] args)
         { 
             Command commandCenter = new Command();
-            commandCenter.welcome();
+            commandCenter.getAccountManager().welcome();
+            commandCenter.getAccountManager().loginOrSignUp();
             
             while (true)
             {
@@ -21,18 +22,34 @@ namespace King_Of_The_Sky
     {
         private ShipFactory factory;
         private Inventory inventory;
-        private List<Player> players;
-        private Player currentPlayer;
+        private AccountManager accountManager;
 
         public Command()
         {
             factory = new ShipFactory();
             inventory = new Inventory();
-            players = new List<Player>();
+            accountManager = new AccountManager();
+        }
+
+        public ShipFactory GetShipFactory()
+        {
+            return this.factory;
+        }
+
+        public Inventory GetInventory()
+        {
+            return this.inventory;
+        }
+
+        public AccountManager getAccountManager()
+        {
+            return this.accountManager;
         }
 
         public void enterCommand()
         {
+            Console.WriteLine("Available Commands:\n<'build' or 'b'>  - Add ships to your armada\n<'ships' or 's'> " +
+                " - View ships in your armada\n<'combat' or 'c'> - Battle other ships or train your own\n<'quit' or 'q'>   - Close application\n");
             Console.WriteLine("Enter Command Below:");
             string[] command;
             try
@@ -81,15 +98,15 @@ namespace King_Of_The_Sky
 
                     if (command[1].ToLower() == "bomber" || command[1].ToLower() == "b")
                     {
-                        currentPlayer.placeShipInArray(factory.createBomber(shipName));
+                        accountManager.getCurrentPlayer().placeShipInArray(factory.createBomber(shipName));
                     }
                     else if (command[1].ToLower() == "crusier" || command[1].ToLower() == "c")
                     {
-                        currentPlayer.placeShipInArray(factory.createCrusier(shipName));
+                        accountManager.getCurrentPlayer().placeShipInArray(factory.createCrusier(shipName));
                     }
                     else if (command[1].ToLower() == "glider" || command[1].ToLower() == "g")
                     {
-                        currentPlayer.placeShipInArray(factory.createGlider(shipName));
+                        accountManager.getCurrentPlayer().placeShipInArray(factory.createGlider(shipName));
                     }
                 }
             }
@@ -98,11 +115,11 @@ namespace King_Of_The_Sky
                 if (command.Length == 1)
                 {
                     Console.WriteLine("Available Commands:\n<'ships'>              - View all ships in armada\n<'ships'> <'{number}'> - View specific deatils of one ship in armada\n<'ships'> <'equip'>    - Outfit your ships with equiptment\n\nShips in armada:");
-                    for (int i = 0; i < currentPlayer.getShips().Length; i++)
+                    for (int i = 0; i < accountManager.getCurrentPlayer().getShips().Length; i++)
                     {
                         try
                         {
-                            currentPlayer.getShips()[i].getStats(i);
+                            accountManager.getCurrentPlayer().getShips()[i].getStats(i);
                         }
                         catch (NullReferenceException e)
                         {
@@ -113,8 +130,8 @@ namespace King_Of_The_Sky
                 }
                 else if (int.TryParse(command[1], out int shipNum))
                 {
-                    currentPlayer.getShips()[shipNum-1].getStats();
-                    currentPlayer.getShips()[shipNum-1].getEquiptmentStats();
+                    accountManager.getCurrentPlayer().getShips()[shipNum-1].getStats();
+                    accountManager.getCurrentPlayer().getShips()[shipNum-1].getEquiptmentStats();
                 }
                 else if (command[1].ToLower() == "e" || command[1].ToLower() == "equip")
                 {
@@ -125,28 +142,28 @@ namespace King_Of_The_Sky
                             "or 'torpedos' or 't' or 'bombs' or 'b'> - View available equiptment of input type\n<'ships'> <'hulls' or 'h'> " +
                             "or <'cannons' or 'c' or 'torpedos' or 't' or 'bombs' or 'b'> <'{equiptment number}'> <'{ship number}'> - Equipts " +
                             "the provided ship with the provided equiptment\n");
-                        inventory.listHulls(currentPlayer);
-                        inventory.listCannons(currentPlayer);
-                        inventory.listTorpedos(currentPlayer);
-                        inventory.listBombs(currentPlayer);
+                        inventory.listHulls(accountManager.getCurrentPlayer());
+                        inventory.listCannons(accountManager.getCurrentPlayer());
+                        inventory.listTorpedos(accountManager.getCurrentPlayer());
+                        inventory.listBombs(accountManager.getCurrentPlayer());
                     }
                     else if (command.Length == 3)
                     {
                         if (command[2].ToLower() == "h" || command[1].ToLower() == "hulls")
                         {
-                            inventory.listHulls(currentPlayer);
+                            inventory.listHulls(accountManager.getCurrentPlayer());
                         }
                         else if (command[2].ToLower() == "c" || command[2].ToLower() == "cannons")
                         {
-                            inventory.listCannons(currentPlayer);
+                            inventory.listCannons(accountManager.getCurrentPlayer());
                         }
                         else if (command[2].ToLower() == "t" || command[2].ToLower() == "torpedos")
                         {
-                            inventory.listTorpedos(currentPlayer);
+                            inventory.listTorpedos(accountManager.getCurrentPlayer());
                         }
                         else if (command[2].ToLower() == "b" || command[2].ToLower() == "bombs")
                         {
-                            inventory.listBombs(currentPlayer);
+                            inventory.listBombs(accountManager.getCurrentPlayer());
                         }
                     }
                     else if (command.Length == 5)
@@ -155,7 +172,7 @@ namespace King_Of_The_Sky
                         {
                             try
                             {
-                                currentPlayer.getShips()[int.Parse(command[4]) - 1].equipHull(inventory.getHulls()[int.Parse(command[3]) - 1]);
+                                accountManager.getCurrentPlayer().getShips()[int.Parse(command[4]) - 1].equipHull(inventory.getHulls()[int.Parse(command[3]) - 1]);
                             }
                             catch (Exception e)
                             {
@@ -166,7 +183,7 @@ namespace King_Of_The_Sky
                         {
                             try
                             {
-                                currentPlayer.getShips()[int.Parse(command[4]) - 1].equipCannon(inventory.getCannons()[int.Parse(command[3]) - 1]);
+                                accountManager.getCurrentPlayer().getShips()[int.Parse(command[4]) - 1].equipCannon(inventory.getCannons()[int.Parse(command[3]) - 1]);
                             }
                             catch (Exception e)
                             {
@@ -177,7 +194,7 @@ namespace King_Of_The_Sky
                         {
                             try
                             {
-                                currentPlayer.getShips()[int.Parse(command[4]) - 1].equipTorpedo(inventory.getTorpedos()[int.Parse(command[3]) - 1]);
+                                accountManager.getCurrentPlayer().getShips()[int.Parse(command[4]) - 1].equipTorpedo(inventory.getTorpedos()[int.Parse(command[3]) - 1]);
                             }
                             catch (Exception e)
                             {
@@ -188,7 +205,7 @@ namespace King_Of_The_Sky
                         {
                             try
                             {
-                                currentPlayer.getShips()[int.Parse(command[4]) - 1].equipBomb(inventory.getBombs()[int.Parse(command[3]) - 1]);
+                                accountManager.getCurrentPlayer().getShips()[int.Parse(command[4]) - 1].equipBomb(inventory.getBombs()[int.Parse(command[3]) - 1]);
                             }
                             catch (Exception e)
                             {
@@ -215,15 +232,15 @@ namespace King_Of_The_Sky
                 if(command.Length == 1)
                 {
                     Console.WriteLine("KOS Players Include:");
-                    for (int i = 0; i < players.Count; i++)
+                    for (int i = 0; i < accountManager.getPlayerList().Count; i++)
                     {
-                        Console.WriteLine("Captain " + players[i].getName());
+                        Console.WriteLine("Captain " + accountManager.getPlayerList()[i].getName());
                     }
-                    Console.WriteLine("\nYou are currently signed in as Captain " + currentPlayer.getName() + "\n");
+                    Console.WriteLine("\nYou are currently signed in as Captain " + accountManager.getCurrentPlayer().getName() + "\n");
                 }
                 else if (command[1].ToLower() == "l" || command[1].ToLower() == "logout")
                 {
-                    logout();
+                    accountManager.logout();
                 }
                 else
                 {
@@ -244,13 +261,26 @@ namespace King_Of_The_Sky
         {
             Console.WriteLine("The entered input did not match any of the available commands\n");
         }
+    }
 
-        public void welcome()
+    class AccountManager
+    {
+        private List<Player> players;
+        private Player currentPlayer;
+
+        public AccountManager()
         {
-            Console.WriteLine("/ * * * * * * * * * * * * * /\n Welcome to King Of The Sky! \n/ * * * * * * * * * * * * * /\n");
-            loginOrSignUp();
-            Console.WriteLine("Enter a command to get started\n\nAvailable Commands:\n<'build' or 'b'>  - Add ships to your armada\n<'ships' or 's'> " +
-                " - View ships in your armada\n<'combat' or 'c'> - Battle other ships or train your own\n<'quit' or 'q'>   - Close application\n");
+            players = new List<Player>();
+        }
+
+        public List<Player> getPlayerList()
+        {
+            return this.players;
+        }
+
+        public Player getCurrentPlayer()
+        {
+            return this.currentPlayer;
         }
 
         public void loginOrSignUp()
@@ -303,7 +333,7 @@ namespace King_Of_The_Sky
                 {
                     Console.WriteLine("Enter password below:");
                     string password = Console.ReadLine();
-                    if(password == "")
+                    if (password == "")
                     {
                         Console.WriteLine("You did not enter a password\n");
                         loginOrSignUp();
@@ -339,11 +369,17 @@ namespace King_Of_The_Sky
             return false;
         }
 
+        public void welcome()
+        {
+            Console.WriteLine("/ * * * * * * * * * * * * * /\n Welcome to King Of The Sky! \n/ * * * * * * * * * * * * * /\n");
+        }
+
         public void logout()
         {
             Console.WriteLine("Captain " + currentPlayer.getName() + " is signing off\n");
             currentPlayer = null;
             welcome();
+            loginOrSignUp();
         }
     }
 
