@@ -46,13 +46,13 @@ namespace King_Of_The_Sky
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
             if      (command[0].ToLower() == "p" || command[0].ToLower() == "player")
             {
@@ -68,7 +68,7 @@ namespace King_Of_The_Sky
             }
             else if (command[0].ToLower() == "c" || command[0].ToLower() == "combat")
             {
-                combatManager.EnterCombatManagerCommand();
+                combatManager.EnterCombatManagerCommand(playerManager);
             }
             else if (command[0].ToLower() == "q" || command[0].ToLower() == "quit" || command[0] == "")
             {
@@ -133,13 +133,13 @@ namespace King_Of_The_Sky
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
             if (command[0].ToLower() == "p" || command[0].ToLower() == "player")
             {
@@ -241,9 +241,14 @@ namespace King_Of_The_Sky
             }
         }
 
-        public bool DoAccountsExist()
+        public void ListAllPlayers()
         {
-            return players.Count > 0;
+            Console.WriteLine("KOS Players:");
+            for (int i = 0; i < GetPlayerList().Count; i++)
+            {
+                Console.WriteLine((i+1) + ". Captain " + GetPlayerList()[i].GetName());
+            }
+            Console.WriteLine();
         }
 
         public bool IsUsernameTaken(String username)
@@ -308,13 +313,13 @@ namespace King_Of_The_Sky
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
             if (command[0].ToLower() == "ships" || command[0].ToLower() == "s")
             {
@@ -348,7 +353,7 @@ namespace King_Of_The_Sky
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("You can only have 5 ships, the number you entered was invalid\n");
+                    Console.WriteLine("The number you entered was invalid, you can only have 5 ships\n");
                 }
             }
             else if (command[0].ToLower() == "e" || command[0].ToLower() == "equip")
@@ -380,13 +385,13 @@ namespace King_Of_The_Sky
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
             if (command.Length == 1)
             {
@@ -588,13 +593,13 @@ namespace King_Of_The_Sky
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
             if (command.Length == 1)
             {
@@ -707,49 +712,91 @@ namespace King_Of_The_Sky
             rand = new Random();
         }
 
-        public void EnterCombatManagerCommand()
+        public void EnterCombatManagerCommand(PlayerManager playerManager)
         {
-            Console.WriteLine("Available Combat System Commands:\n" +
+            Console.WriteLine("Available Commands:\n" +
                 "<'battle' or 'b'>  - Choose a player to battle or train your ships\n" +
                 "<'players' or 'p'> - View other players to battle\n" +
                 "<'return' or 'r'>  - Return to main menu\n\n" +
-                "Enter command for Combat System:\n");
+                "Enter Combat Manager command:");
+
             string[] command;
             try
             {
                 command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Invalid input was entered");
                 return;
             }
-            Console.WriteLine();
 
-            if (command[0].ToLower() == "battle" || command[0].ToLower() == "b")
+            if ((command[0].ToLower() == "battle" || command[0].ToLower() == "b") && command.Length == 1)
             {
+                Ship playersShip = ChoosePlayersShipForBattle(playerManager.GetCurrentPlayer(), playerManager.GetCurrentPlayer());
 
+                if (playersShip == null)
+                {
+                    EnterCombatManagerCommand(playerManager);
+                    return;
+                }
+
+                Player opponent = ChooseOpponent(playerManager);
+
+                if (opponent == null)
+                {
+                    EnterCombatManagerCommand(playerManager);
+                    return;
+                }
+
+                Ship opposingShip = ChoosePlayersShipForBattle(opponent, playerManager.GetCurrentPlayer());
+
+                if (opposingShip == null)
+                {
+                    EnterCombatManagerCommand(playerManager);
+                    return;
+                }
+
+                Ship[] fighters = { };
+                EnterBattleCommand(fighters);
+                return;
             }
             else if (command[0].ToLower() == "players" || command[0].ToLower() == "p")
             {
-
+                playerManager.ListAllPlayers();
             }
-            else if (command[0].ToLower() == "return" || command[0].ToLower() == "r")
+            else if (command[0].ToLower() == "return" || command[0].ToLower() == "r" || command[0].ToLower() == "")
             {
-
+                return;
             }
             else
             {
                 InvalidInput();
             }
+            EnterCombatManagerCommand(playerManager);
         }
 
-        public void Battle(Ship[] fighters)
+        public void EnterBattleCommand(Ship[] fighters)
         {
-            if (fighters.Length < 2)
+            Console.WriteLine("Available Commands:\n" +
+                    "<'ships' or 's'> - Lists the ships that the current player has available\n" +
+                    "<'{ship number}'> <'{ship number}'> - Starts a battle between the two provided ships\n" +
+                    "<'return' or 'r'> - Return to the Combat Manager Menu:\n\n" +
+                    "Choose two ships from your armada to train against each other by entering their numbers below:");
+
+            string[] command;
+            try
             {
-                Console.WriteLine("You must enter at least two fighters to battle");
+                command = Console.ReadLine().Split(' ');
+                Console.WriteLine();
             }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+
             for (int i = 0; i < fighters.Length; i++)
             {
                 fighters[i].SetTempHealth(fighters[i].GetHealth());
@@ -773,7 +820,7 @@ namespace King_Of_The_Sky
 
             if (hitChance <= accuracy)
             {
-                takeDamage(target, weapon.GetPower());
+                TakeDamage(target, weapon.GetPower());
                 Console.WriteLine("The " + source.GetName() + " has hit the " + target.GetName() + " with the " + weapon.GetName() + "\n");
             }
             else
@@ -786,7 +833,7 @@ namespace King_Of_The_Sky
         {
             if(rand.Next(2) == 1)
             {
-                takeDamage(target, source.GetWeight());
+                TakeDamage(target, source.GetWeight());
             }
             else
             {
@@ -794,13 +841,64 @@ namespace King_Of_The_Sky
             }
         }
 
-        public void takeDamage(Ship target, int damage)
+        public void TakeDamage(Ship target, int damage)
         {
             target.SetTempHealth(target.GetTempHealth() - damage);
             if (target.GetTempHealth() <= 0)
             {
                 Console.WriteLine("The " + target.GetName() + " has been destroyed");
                 // Remove fighter from queue
+            }
+        }
+
+        public Ship ChoosePlayersShipForBattle(Player player, Player currentPlayer)
+        {
+            player.ListShips();
+            if (player == currentPlayer)
+            {
+                Console.WriteLine("Choose one of your ships for battle:");
+            }
+            else
+            {
+                Console.WriteLine("Choose one of Captain " + player.GetName() + "'s ships for battle:");
+            }
+
+            string chooseShipCommand;
+            try
+            {
+                chooseShipCommand = Console.ReadLine();
+                Console.WriteLine();
+                if (player.GetShips()[int.Parse(chooseShipCommand)-1] == null)
+                {
+                    Console.WriteLine("This ship does not exist\n");
+                    return null;
+                }
+                Console.WriteLine("The " + player.GetShips()[int.Parse(chooseShipCommand) - 1].GetName() + " will fight in the next battle\n");
+                return player.GetShips()[int.Parse(chooseShipCommand)-1];
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The input you entered was not a valid ship number\n");
+                return null;
+            }
+        }
+
+        public Player ChooseOpponent(PlayerManager playerManager)
+        {
+            playerManager.ListAllPlayers();
+            Console.WriteLine("Choose a player to battle by entering their number below:");
+
+            string choosePlayerCommand;
+            try
+            {
+                choosePlayerCommand = Console.ReadLine();
+                Console.WriteLine("\nCaptain " + playerManager.GetPlayerList()[int.Parse(choosePlayerCommand)-1].GetName() + " will be your opponent\n");
+                return playerManager.GetPlayerList()[int.Parse(choosePlayerCommand)-1];
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The input you entered did not match a player number in the database\n");
+                return null;
             }
         }
 
@@ -843,6 +941,23 @@ namespace King_Of_The_Sky
         public short GetLevel()
         {
             return this.level;
+        }
+
+        public void ListShips()
+        {
+            Console.WriteLine("Ships in Captain " + GetName() + "'s armada:");
+            for (int i = 0; i < GetShips().Length; i++)
+            {
+                if (GetShips()[i] != null)
+                {
+                    Console.WriteLine((i + 1) + ". " + GetShips()[i].GetName());
+                }
+                else
+                {
+                    Console.WriteLine((i+1) + ". ~Empty~");
+                }
+            }
+            Console.WriteLine();
         }
 
         public void SetLevel(short level)
