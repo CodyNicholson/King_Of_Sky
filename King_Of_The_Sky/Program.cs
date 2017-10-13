@@ -7,9 +7,9 @@ namespace King_Of_The_Sky
     {
         static void Main(string[] args)
         { 
-            Command commandCenter = new Command();
-            commandCenter.GetAccountManager().Welcome();
-            commandCenter.GetAccountManager().LoginOrSignUp();
+            CommandCenter commandCenter = new CommandCenter();
+            commandCenter.GetPlayerManager().Welcome();
+            commandCenter.GetPlayerManager().LoginOrSignUp();
             
             while (true)
             {
@@ -18,39 +18,30 @@ namespace King_Of_The_Sky
         }
     }
 
-    class Command
+    class CommandCenter
     {
-        private ShipFactory factory;
-        private Inventory inventory;
-        private AccountManager accountManager;
-
-        public Command()
+        private PlayerManager playerManager;
+        private ShipManager shipManager;
+        private ShipFactoryManager shipFactoryManager;
+        private CombatManager combatManager;
+        
+        public CommandCenter()
         {
-            factory = new ShipFactory();
-            inventory = new Inventory();
-            accountManager = new AccountManager();
-        }
-
-        public ShipFactory GetShipFactory()
-        {
-            return this.factory;
-        }
-
-        public Inventory GetInventory()
-        {
-            return this.inventory;
-        }
-
-        public AccountManager GetAccountManager()
-        {
-            return this.accountManager;
+            playerManager = new PlayerManager();
+            shipManager = new ShipManager();
+            shipFactoryManager = new ShipFactoryManager();
+            combatManager = new CombatManager();
         }
 
         public void EnterCommand()
         {
-            Console.WriteLine("Available Commands:\n<'build' or 'b'>  - Add ships to your armada\n<'ships' or 's'> " +
-                " - View ships in your armada\n<'combat' or 'c'> - Battle other ships or train your own\n<'quit' or 'q'>   - Close application\n");
-            Console.WriteLine("Enter Command Below:");
+            Console.WriteLine("Available Commands:\n" +
+                "<'player' or 'p'> - View list of KOS players or logout\n" +
+                "<'ships' or 's'>  - View ships in your armada\n" +
+                "<'build' or 'b'>  - Add ships to your armada\n" +
+                "<'combat' or 'c'> - Battle other ships or train your own\n" +
+                "<'quit' or 'q'>   - Close application\n\n" +
+                "Enter Command Below:");
             string[] command;
             try
             {
@@ -63,193 +54,25 @@ namespace King_Of_The_Sky
             }
             Console.WriteLine();
 
-            if      (command[0].ToLower() == "b" || command[0].ToLower() == "build")
+            if      (command[0].ToLower() == "p" || command[0].ToLower() == "player")
             {
-                if(command.Length == 1)
-                {
-                    Console.WriteLine("There are three types of ships you can build: Glider, Crusier, and Bomber\nTo build one enter:\n<'build' or 'b'> <'glider' or 'g' or 'crusier' or 'c' or 'bomber' or 'b'> <'name'>\nThe name can be multiple words\nTo get more information about a certain type of ship try to build it without a name\n");
-                }
-                else if (command.Length == 2)
-                {
-                    if (command[1].ToLower() == "glider" || command[1].ToLower() == "g")
-                    {
-                        Console.WriteLine("Gliders are fast and evasive but cannot take much damage\n");
-                    }
-                    else if (command[1].ToLower() == "crusier" || command[1].ToLower() == "c")
-                    {
-                        Console.WriteLine("Crusiers are standard battleships with all-around average stats\n");
-                    }
-                    else if (command[1].ToLower() == "bomber" || command[1].ToLower() == "b")
-                    {
-                        Console.WriteLine("Bombers are slow tanks that can take a hit\n");
-                    }
-                    else
-                    {
-                        InvalidInput();
-                    }
-                }
-                else if (command.Length > 2)
-                {
-                    string shipName = command[2];
-                    for (int i = 3; i < command.Length; i++)
-                    {
-                        shipName = shipName + " " + command[i];
-                    }
-
-                    if (command[1].ToLower() == "bomber" || command[1].ToLower() == "b")
-                    {
-                        accountManager.GetCurrentPlayer().PlaceShipInArray(factory.CreateBomber(shipName));
-                    }
-                    else if (command[1].ToLower() == "crusier" || command[1].ToLower() == "c")
-                    {
-                        accountManager.GetCurrentPlayer().PlaceShipInArray(factory.CreateCrusier(shipName));
-                    }
-                    else if (command[1].ToLower() == "glider" || command[1].ToLower() == "g")
-                    {
-                        accountManager.GetCurrentPlayer().PlaceShipInArray(factory.CreateGlider(shipName));
-                    }
-                }
+                playerManager.EnterPlayerManagerCommand();
             }
             else if (command[0].ToLower() == "s" || command[0].ToLower() == "ship" || command[0].ToLower() == "ships")
             {
-                if (command.Length == 1)
-                {
-                    Console.WriteLine("Available Commands:\n<'ships'>              - View all ships in armada\n<'ships'> <'{number}'> - View specific deatils of one ship in armada\n<'ships'> <'equip'>    - Outfit your ships with equiptment\n\nShips in armada:");
-                    for (int i = 0; i < accountManager.GetCurrentPlayer().GetShips().Length; i++)
-                    {
-                        try
-                        {
-                            accountManager.GetCurrentPlayer().GetShips()[i].GetStats(i);
-                        }
-                        catch (NullReferenceException e)
-                        {
-                            Console.WriteLine((i + 1) + ". ~Empty~");
-                        }
-                    }
-                    Console.WriteLine();
-                }
-                else if (int.TryParse(command[1], out int shipNum))
-                {
-                    accountManager.GetCurrentPlayer().GetShips()[shipNum-1].GetStats();
-                    accountManager.GetCurrentPlayer().GetShips()[shipNum-1].GetEquiptmentStats();
-                }
-                else if (command[1].ToLower() == "e" || command[1].ToLower() == "equip")
-                {
-                    if (command.Length == 2)
-                    {
-                        Console.WriteLine("Here you can outfit your ship with different equiptment.\n\nAvailable Commands:\n<'ships'> " +
-                            "<'equip'> - View equiptment and available commands\n<'ships'> <'equip'> <'hulls' or 'h' or 'cannons' or 'c' " +
-                            "or 'torpedos' or 't' or 'bombs' or 'b'> - View available equiptment of input type\n<'ships'> <'hulls' or 'h'> " +
-                            "or <'cannons' or 'c' or 'torpedos' or 't' or 'bombs' or 'b'> <'{equiptment number}'> <'{ship number}'> - Equipts " +
-                            "the provided ship with the provided equiptment\n");
-                        inventory.ListHulls(accountManager.GetCurrentPlayer());
-                        inventory.ListCannons(accountManager.GetCurrentPlayer());
-                        inventory.ListTorpedos(accountManager.GetCurrentPlayer());
-                        inventory.ListBombs(accountManager.GetCurrentPlayer());
-                    }
-                    else if (command.Length == 3)
-                    {
-                        if (command[2].ToLower() == "h" || command[1].ToLower() == "hulls")
-                        {
-                            inventory.ListHulls(accountManager.GetCurrentPlayer());
-                        }
-                        else if (command[2].ToLower() == "c" || command[2].ToLower() == "cannons")
-                        {
-                            inventory.ListCannons(accountManager.GetCurrentPlayer());
-                        }
-                        else if (command[2].ToLower() == "t" || command[2].ToLower() == "torpedos")
-                        {
-                            inventory.ListTorpedos(accountManager.GetCurrentPlayer());
-                        }
-                        else if (command[2].ToLower() == "b" || command[2].ToLower() == "bombs")
-                        {
-                            inventory.ListBombs(accountManager.GetCurrentPlayer());
-                        }
-                    }
-                    else if (command.Length == 5)
-                    {
-                        if (command[2].ToLower() == "h")
-                        {
-                            try
-                            {
-                                accountManager.GetCurrentPlayer().GetShips()[int.Parse(command[4]) - 1].EquipHull(inventory.GetHulls()[int.Parse(command[3]) - 1]);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("The entered hull or ship does not exist\n");
-                            }
-                        }
-                        else if (command[2].ToLower() == "c")
-                        {
-                            try
-                            {
-                                accountManager.GetCurrentPlayer().GetShips()[int.Parse(command[4]) - 1].EquipCannon(inventory.GetCannons()[int.Parse(command[3]) - 1]);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("The entered cannon or ship does not exist\n");
-                            }
-                        }
-                        else if (command[2].ToLower() == "t")
-                        {
-                            try
-                            {
-                                accountManager.GetCurrentPlayer().GetShips()[int.Parse(command[4]) - 1].EquipTorpedo(inventory.GetTorpedos()[int.Parse(command[3]) - 1]);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("The entered torpedo or ship does not exist\n");
-                            }
-                        }
-                        else if (command[2].ToLower() == "b")
-                        {
-                            try
-                            {
-                                accountManager.GetCurrentPlayer().GetShips()[int.Parse(command[4]) - 1].EquipBomb(inventory.GetBombs()[int.Parse(command[3]) - 1]);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine("The entered bomb or ship does not exist\n");
-                            }
-                        }
-                        else
-                        {
-                            InvalidInput();
-                        }
-                    }
-                }
-                else
-                {
-                    InvalidInput();
-                }
+                shipManager.EnterShipManagerCommand(playerManager);
+            }
+            else if (command[0].ToLower() == "b" || command[0].ToLower() == "build")
+            {
+                shipFactoryManager.EnterBuildCommand(playerManager);
             }
             else if (command[0].ToLower() == "c" || command[0].ToLower() == "combat")
             {
-
-            }
-            else if (command[0].ToLower() == "p" || command[0].ToLower() == "player")
-            {
-                if(command.Length == 1)
-                {
-                    Console.WriteLine("Available Commands:\n<'player' or 'p'>                   - Lists all KOS players\n<'player' or 'p'> <'logout' or 'l'> - Logs the current player out and returns to welcome screen\n\nKOS Players Include:");
-                    for (int i = 0; i < accountManager.GetPlayerList().Count; i++)
-                    {
-                        Console.WriteLine("- Captain " + accountManager.GetPlayerList()[i].GetName());
-                    }
-                    Console.WriteLine("\nYou are currently signed in as Captain " + accountManager.GetCurrentPlayer().GetName() + "\n");
-                }
-                else if (command[1].ToLower() == "l" || command[1].ToLower() == "logout")
-                {
-                    accountManager.Logout();
-                }
-                else
-                {
-                    InvalidInput();
-                }
+                combatManager.EnterCombatManagerCommand();
             }
             else if (command[0].ToLower() == "q" || command[0].ToLower() == "quit" || command[0] == "")
             {
-                Environment.Exit(0);
+                ExitApplication();
             }
             else
             {
@@ -257,20 +80,90 @@ namespace King_Of_The_Sky
             }
         }
 
+        public PlayerManager GetPlayerManager()
+        {
+            return playerManager;
+        }
+
+        public ShipManager GetShipManager()
+        {
+            return shipManager;
+        }
+
+        public ShipFactoryManager GetShipFactoryManager()
+        {
+            return shipFactoryManager;
+        }
+
+        public CombatManager GetCombatManager()
+        {
+            return combatManager;
+        }
+
         public void InvalidInput()
         {
             Console.WriteLine("The entered input did not match any of the available commands\n");
         }
+
+        public void ExitApplication()
+        {
+            Environment.Exit(0);
+        }
     }
 
-    class AccountManager
+    class PlayerManager
     {
         private List<Player> players;
         private Player currentPlayer;
 
-        public AccountManager()
+        public PlayerManager()
         {
             players = new List<Player>();
+        }
+
+        public void EnterPlayerManagerCommand()
+        {
+            Console.WriteLine("Available Player Manager Commands:\n" +
+                    "<'players' or 'p'> - Lists all KOS players\n" +
+                    "<'logout' or 'l'>  - Logs the current player out and returns to welcome screen\n" +
+                    "<'return' or 'r'>  - Returns to main menu\n\n" +
+                    "Enter Player Management Command:");
+
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+            Console.WriteLine();
+
+            if (command[0].ToLower() == "p" || command[0].ToLower() == "player")
+            {
+                Console.WriteLine("KOS Players Include:");
+                for (int i = 0; i < GetPlayerList().Count; i++)
+                {
+                    Console.WriteLine("- Captain " + GetPlayerList()[i].GetName());
+                }
+                Console.WriteLine("\nYou are currently signed in as Captain " + GetCurrentPlayer().GetName() + "\n");
+            }
+            else if (command[0].ToLower() == "l" || command[0].ToLower() == "logout")
+            {
+                Logout();
+                return;
+            }
+            else if (command[0].ToLower() == "r" || command[0].ToLower() == "return" || command[0].ToLower() == "")
+            {
+                return;
+            }
+            else
+            {
+                InvalidInput();
+            }
+            EnterPlayerManagerCommand();
         }
 
         public List<Player> GetPlayerList()
@@ -287,26 +180,21 @@ namespace King_Of_The_Sky
         {
             Console.WriteLine("Do you have a KOS account? Enter 'yes' or 'no' below:");
             string doYouHaveAccount = Console.ReadLine();
+            Console.WriteLine();
             if (doYouHaveAccount == "yes" || doYouHaveAccount == "y")
             {
-                if (!DoAccountsExist())
-                {
-                    Console.WriteLine("Your account was not found\n");
-                    LoginOrSignUp();
-                    return;
-                }
                 Console.WriteLine("Enter username below:");
                 string username = Console.ReadLine();
+                Console.WriteLine();
                 Console.WriteLine("Enter password below:");
                 string password = Console.ReadLine();
+                Console.WriteLine();
                 for (int i = 0; i < players.Count; i++)
                 {
                     if (players[i].GetName() == username && players[i].GetPassword() == password)
                     {
                         currentPlayer = players[i];
                         Console.WriteLine("Welcome back captain " + players[i].GetName() + "\n");
-                        Console.WriteLine("Enter a command to get started\n\nAvailable Commands:\n<'build' or 'b'>  - Add ships to your armada\n<'ships' or 's'> " +
-                            " - View ships in your armada\n<'combat' or 'c'> - Battle other ships or train your own\n<'quit' or 'q'>   - Close application\n");
                         return;
                     }
                 }
@@ -318,6 +206,7 @@ namespace King_Of_The_Sky
             {
                 Console.WriteLine("To create a new player enter username below:");
                 string username = Console.ReadLine();
+                Console.WriteLine();
                 if (username == "")
                 {
                     Console.WriteLine("You did not enter a username\n");
@@ -331,8 +220,9 @@ namespace King_Of_The_Sky
                 }
                 else
                 {
-                    Console.WriteLine("Enter password below:");
+                    Console.WriteLine("Create a password by entering it below:");
                     string password = Console.ReadLine();
+                    Console.WriteLine();
                     if (password == "")
                     {
                         Console.WriteLine("You did not enter a password\n");
@@ -341,11 +231,11 @@ namespace King_Of_The_Sky
                     }
                     else
                     {
-                        Console.WriteLine();
                         Player player = new Player(username, password);
                         players.Add(player);
                         currentPlayer = player;
                         Console.WriteLine("Welcome to KOS Captain " + currentPlayer.GetName() + "\n");
+                        return;
                     }
                 }
             }
@@ -371,7 +261,9 @@ namespace King_Of_The_Sky
 
         public void Welcome()
         {
-            Console.WriteLine("/ * * * * * * * * * * * * * /\n Welcome to King Of The Sky! \n/ * * * * * * * * * * * * * /\n");
+            Console.WriteLine("/ * * * * * * * * * * * * * /\n" +
+                              " Welcome to King Of The Sky! \n" +
+                              "/ * * * * * * * * * * * * * /\n");
         }
 
         public void Logout()
@@ -381,147 +273,227 @@ namespace King_Of_The_Sky
             Welcome();
             LoginOrSignUp();
         }
-    }
 
-    class CombatManager
-    {
-        private short altitude;
-        private Random rand;
-
-
-        public CombatManager()
+        public void InvalidInput()
         {
-            rand = new Random();
-        }
-
-        public void Battle(params Ship[] fighters)
-        {
-            for (int i = 0; i < fighters.Length; i++)
-            {
-                fighters[i].SetTempHealth(fighters[i].GetHealth());
-            }
-            if(fighters.Length < 2)
-            {
-                Console.WriteLine("You must enter at least two fighters to battle");
-            }
-        }
-
-        public void FireCannon(Ship source, Ship target)
-        {
-            int speedDiff = source.GetSpeed() - target.GetSpeed();
-            int hitChance = rand.Next(0, 100);
-            if (speedDiff > 0 && hitChance <= source.GetCannon().GetAccuracy())
-            {
-                takeDamage(target, source.GetCannon().GetPower());
-                Console.WriteLine("The " + source.GetName() + " has hit the " + target.GetName() + " with the " + source.GetCannon() + "\n");
-            }
-            else if (true)
-            {
-                source.GetCannon().GetAccuracy();
-            }
-        }
-
-        public void FireTorpedo(Ship source, Ship target)
-        {
-
-        }
-
-        public void FireBomb(Ship source, Ship target)
-        {
-
-        }
-
-        public void Ram(Ship source, Ship target)
-        {
-
-        }
-
-        public void takeDamage(Ship target, int damage)
-        {
-            target.SetTempHealth(target.GetTempHealth() - damage);
-            if (target.GetTempHealth() <= 0)
-            {
-                Console.WriteLine("The " + target.GetName() + " has been destroyed");
-                // Remove fighter from queue
-            }
+            Console.WriteLine("The entered input did not match any of the available commands\n");
         }
     }
 
-    class Player
-    {
-        private string name;
-        private string password;
-        private short level;
-        private Ship[] ships;
-
-        public Player(string name, string password)
-        {
-            this.name = name;
-            this.password = password;
-            this.level = 0;
-            this.ships = new Ship[5];
-        }
-
-        public string GetName()
-        {
-            return this.name;
-        }
-
-        public string GetPassword()
-        {
-            return this.password;
-        }
-
-        public Ship[] GetShips()
-        {
-            return this.ships;
-        }
-
-        public short GetLevel()
-        {
-            return this.level;
-        }
-
-        public void SetLevel(short level)
-        {
-            this.level = level;
-        }
-
-        public void PlaceShipInArray(Ship newShip)
-        {
-            for (int i = 0; i < GetShips().Length; i++)
-            {
-                if (GetShips()[i] == null)
-                {
-                    GetShips()[i] = newShip;
-                    Console.WriteLine("The " + newShip.GetName() + " is number " + (i + 1) + " in your armada\n");
-                    return;
-                }
-            }
-            Console.WriteLine("Your armada is full. Enter the number of the ship you would like to replace, or enter anything else to cancel ship creation:");
-            string command2 = Console.ReadLine();
-            if (command2[0].Equals('1') || command2[0].Equals('2') || command2[0].Equals('3') || command2[0].Equals('4') || command2[0].Equals('5'))
-            {
-                Console.WriteLine("The " + GetShips()[int.Parse((command2[0]).ToString()) - 1]);
-                GetShips()[int.Parse((command2[0]).ToString()) - 1] = newShip;
-
-            }
-        }
-    }
-
-    class Inventory
+    class ShipManager
     {
         private Hull[] hulls;
         private Cannon[] cannons;
         private Torpedo[] torpedos;
         private Bomb[] bombs;
 
-        public Inventory()
+        public ShipManager()
         {
             this.hulls = new Hull[] { new Hull("Wood", 200, 0, 0), new Hull("Iron", 500, 50, 10), new Hull("Steel", 1500, 100, 20) };
             this.cannons = new Cannon[] { new Cannon("Standard Cannon", 100, 0, 100, 0), new Cannon("Ion Cannon", 300, 30, 100, 10), new Cannon("Dragon Fire", 500, 200, 80, 20) };
             this.torpedos = new Torpedo[] { new Torpedo("Standard Torpedo", 70, 0, 90, 0), new Torpedo("Blue Lightning", 100, 60, 90, 10), new Torpedo("Black Thunder", 1000, 90, 70, 20) };
             this.bombs = new Bomb[] { new Bomb("Standard Bomb", 120, 0, 80, 0), new Bomb("TNT", 400, 65, 55, 10), new Bomb("Dynamite", 600, 85, 75, 20) };
+        }
+
+        public void EnterShipManagerCommand(PlayerManager playerManager)
+        {
+            Console.WriteLine("Available Commands:\n" +
+                    "<'ships' or 's'>  - View all ships in the current player's armada with their ship numbers\n" +
+                    "<'{ship number}'> - View specific deatils of one ship in armada\n" +
+                    "<'equip' or 'e'>  - Outfit your ships with various equiptment\n" +
+                    "<'return' or 'r'> - Return to main menu\n\n" +
+                    "Enter Ship Manager Command:");
+
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+            Console.WriteLine();
+
+            if (command[0].ToLower() == "ships" || command[0].ToLower() == "s")
+            {
+                Console.WriteLine("Ships in armada:");
+                for (int i = 0; i < playerManager.GetCurrentPlayer().GetShips().Length; i++)
+                {
+                    try
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[i].GetStats(i);
+                    }
+                    catch (NullReferenceException e)
+                    {
+                        Console.WriteLine((i + 1) + ". ~Empty~");
+                    }
+                }
+                Console.WriteLine();
+            }
+            else if (int.TryParse(command[0], out int shipNum))
+            {
+                try
+                {
+                    if (playerManager.GetCurrentPlayer().GetShips()[shipNum - 1] != null)
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[shipNum - 1].GetStats();
+                        playerManager.GetCurrentPlayer().GetShips()[shipNum - 1].GetEquiptmentStats();
+                    }
+                    else
+                    {
+                        Console.WriteLine("You do not yet have a ship " + shipNum + ". To create a new ship, return to the main menu and enter the 'build' command.\n");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("You can only have 5 ships, the number you entered was invalid\n");
+                }
+            }
+            else if (command[0].ToLower() == "e" || command[0].ToLower() == "equip")
+            {
+                EnterEquipCommand(playerManager);
+            }
+            else if (command[0].ToLower() == "r" || command[0].ToLower() == "return" || command[0].ToLower() == "")
+            {
+                return;
+            }
+            else
+            {
+                InvalidInput();
+            }
+            EnterShipManagerCommand(playerManager);
+        }
+
+        public void EnterEquipCommand(PlayerManager playerManager)
+        {
+            Console.WriteLine("Available Commands:\n" +
+                        "<'list' or 'l'>  - View all available equiptment\n" +
+                        "<'ships' or 's'> - View all ships in the current player's armada\n" +
+                        "<'hulls' or 'h' or 'cannons' or 'c' or 'torpedos' or 't' or 'bombs' or 'b'> - View available equiptment of input type\n" +
+                        "<'hulls' or 'h' or 'cannons' or 'c' or 'torpedos' or 't' or 'bombs' or 'b'> <'{equiptment number}'> <'{ship number}'> - Equipts the provided ship with the provided equiptment\n" +
+                        "<'return' or 'r'> - Go back to Ship Manager Menu\n\n" +
+                        "Enter Equipt Manager Command:");
+
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+            Console.WriteLine();
+
+            if (command.Length == 1)
+            {
+                if (command[0].ToLower() == "list" || command[0].ToLower() == "l")
+                {
+                    ListHulls(playerManager.GetCurrentPlayer());
+                    ListCannons(playerManager.GetCurrentPlayer());
+                    ListTorpedos(playerManager.GetCurrentPlayer());
+                    ListBombs(playerManager.GetCurrentPlayer());
+                }
+                if (command[0].ToLower() == "ships" || command[0].ToLower() == "s")
+                {
+                    Console.WriteLine("Ships in armada:");
+                    for (int i = 0; i < playerManager.GetCurrentPlayer().GetShips().Length; i++)
+                    {
+                        try
+                        {
+                            playerManager.GetCurrentPlayer().GetShips()[i].GetStats(i);
+                        }
+                        catch (NullReferenceException e)
+                        {
+                            Console.WriteLine((i + 1) + ". ~Empty~");
+                        }
+                    }
+                    Console.WriteLine();
+                }
+                else if (command[0].ToLower() == "h" || command[0].ToLower() == "hulls")
+                {
+                    ListHulls(playerManager.GetCurrentPlayer());
+                }
+                else if (command[0].ToLower() == "c" || command[0].ToLower() == "cannons")
+                {
+                    ListCannons(playerManager.GetCurrentPlayer());
+                }
+                else if (command[0].ToLower() == "t" || command[0].ToLower() == "torpedos")
+                {
+                    ListTorpedos(playerManager.GetCurrentPlayer());
+                }
+                else if (command[0].ToLower() == "b" || command[0].ToLower() == "bombs")
+                {
+                    ListBombs(playerManager.GetCurrentPlayer());
+                }
+                else if (command[0].ToLower() == "r" || command[0].ToLower() == "return" || command[0].ToLower() == "")
+                {
+                    return;
+                }
+                else
+                {
+                    InvalidInput();
+                }
+            }
+            else if (command.Length == 3)
+            {
+                if (command[0].ToLower() == "h" || command[0].ToLower() == "hulls")
+                {
+                    try
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[int.Parse(command[2]) - 1].EquipHull(GetHulls()[int.Parse(command[1]) - 1]);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("The entered hull or ship does not exist\n");
+                    }
+                }
+                else if (command[0].ToLower() == "c" || command[0].ToLower() == "cannons")
+                {
+                    try
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[int.Parse(command[2]) - 1].EquipCannon(GetCannons()[int.Parse(command[1]) - 1]);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("The entered cannon or ship does not exist\n");
+                    }
+                }
+                else if (command[0].ToLower() == "t" || command[0].ToLower() == "torpedos")
+                {
+                    try
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[int.Parse(command[2]) - 1].EquipTorpedo(GetTorpedos()[int.Parse(command[1]) - 1]);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("The entered torpedo or ship does not exist\n");
+                    }
+                }
+                else if (command[0].ToLower() == "b" || command[0].ToLower() == "bombs")
+                {
+                    try
+                    {
+                        playerManager.GetCurrentPlayer().GetShips()[int.Parse(command[2]) - 1].EquipBomb(GetBombs()[int.Parse(command[1]) - 1]);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("The entered bomb or ship does not exist\n");
+                    }
+                }
+                else
+                {
+                    InvalidInput();
+                }
+            }
+            else
+            {
+                InvalidInput();
+            }
+            EnterEquipCommand(playerManager);
         }
 
         public Hull[] GetHulls()
@@ -595,29 +567,307 @@ namespace King_Of_The_Sky
             }
             Console.WriteLine();
         }
+
+        public void InvalidInput()
+        {
+            Console.WriteLine("The entered input did not match any of the available commands\n");
+        }
     }
 
-    class ShipFactory
+    class ShipFactoryManager
     {
+        public void EnterBuildCommand(PlayerManager playerManager)
+        {
+            Console.WriteLine("Available Commands:\n" +
+                        "<'ships' or 's'>                                                  - Lists the ships in the current player's armada\n" +
+                        "<'glider' or 'g' or 'crusier' or 'c' or 'bomber' or 'b'>          - Get more information about a certain type of ship\n" +
+                        "<'glider' or 'g' or 'crusier' or 'c' or 'bomber' or 'b'> <'name'> - Build a type of ship with a name that can be multiple words\n" +
+                        "<'return' or 'r'> - Return to main menu\n\n" +
+                        "Enter Build Manager Command:");
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+            Console.WriteLine();
+
+            if (command.Length == 1)
+            {
+                if (command[0].ToLower() == "glider" || command[0].ToLower() == "g")
+                {
+                    Console.WriteLine("Gliders are fast and evasive but cannot take much damage\n");
+                }
+                else if (command[0].ToLower() == "crusier" || command[0].ToLower() == "c")
+                {
+                    Console.WriteLine("Crusiers are standard battleships with all-around average stats\n");
+                }
+                else if (command[0].ToLower() == "bomber" || command[0].ToLower() == "b")
+                {
+                    Console.WriteLine("Bombers are slow tanks that can take a hit\n");
+                }
+                else if (command[0].ToLower() == "ships" || command[0].ToLower() == "s")
+                {
+                    Console.WriteLine("Ships in armada:");
+                    for (int i = 0; i < playerManager.GetCurrentPlayer().GetShips().Length; i++)
+                    {
+                        try
+                        {
+                            playerManager.GetCurrentPlayer().GetShips()[i].GetStats(i);
+                        }
+                        catch (NullReferenceException e)
+                        {
+                            Console.WriteLine((i + 1) + ". ~Empty~");
+                        }
+                    }
+                    Console.WriteLine();
+                }
+                else if(command[0].ToLower() == "return" || command[0].ToLower() == "r" || command[0].ToLower() == "")
+                {
+                    return;
+                }
+                else
+                {
+                    InvalidInput();
+                }
+            }
+            else if (command.Length > 1)
+            {
+                string shipName = command[1];
+                for (int i = 2; i < command.Length; i++)
+                {
+                    shipName = shipName + " " + command[i];
+                }
+
+                if (command[0].ToLower() == "bomber" || command[0].ToLower() == "b")
+                {
+                    playerManager.GetCurrentPlayer().PlaceShipInArray(CreateBomber(shipName));
+                }
+                else if (command[0].ToLower() == "crusier" || command[0].ToLower() == "c")
+                {
+                    playerManager.GetCurrentPlayer().PlaceShipInArray(CreateCrusier(shipName));
+                }
+                else if (command[0].ToLower() == "glider" || command[0].ToLower() == "g")
+                {
+                    playerManager.GetCurrentPlayer().PlaceShipInArray(CreateGlider(shipName));
+                }
+            }
+            EnterBuildCommand(playerManager);
+        }
+
         public Cruiser CreateCrusier(string name)
         {
             Cruiser c = new Cruiser(name);
-            Console.WriteLine("You have built a new Cruiser named: The " + c.GetName() + "\nStats:\nHealth: " + c.GetHealth() + "\nArmor: " + c.GetArmor() + "\nSpeed: " + c.GetSpeed() + "\n");
+            Console.WriteLine("You have built a new Cruiser named: The " + c.GetName() + "\n" +
+                "Stats:\n" +
+                "Health: " + c.GetHealth() + "\n" +
+                "Armor: " + c.GetArmor() + "\n" +
+                "Speed: " + c.GetSpeed() + "\n");
             return c;
         }
 
         public Glider CreateGlider(string name)
         {
             Glider g = new Glider(name);
-            Console.WriteLine("You have built a new Glider named: The " + g.GetName() + "\nStats:\nHealth: " + g.GetHealth() + "\nArmor: " + g.GetArmor() + "\nSpeed: " + g.GetSpeed() + "\n");
+            Console.WriteLine("You have built a new Glider named: The " + g.GetName() + "\n" +
+                "Stats:\n" +
+                "Health: " + g.GetHealth() + "\n" +
+                "Armor: " + g.GetArmor() + "\n" +
+                "Speed: " + g.GetSpeed() + "\n");
             return g;
         }
 
         public Bomber CreateBomber(string name)
         {
             Bomber b = new Bomber(name);
-            Console.WriteLine("You have built a new Bomber named: The " + b.GetName() + "\nStats:\nHealth: " + b.GetHealth() + "\nArmor: " + b.GetArmor() + "\nSpeed: " + b.GetSpeed() + "\n");
+            Console.WriteLine("You have built a new Bomber named: The " + b.GetName() + "\n" +
+                "Stats:\n" +
+                "Health: " + b.GetHealth() + "\n" +
+                "Armor: " + b.GetArmor() + "\n" +
+                "Speed: " + b.GetSpeed() + "\n");
             return b;
+        }
+
+        public void InvalidInput()
+        {
+            Console.WriteLine("The entered input did not match any of the available commands\n");
+        }
+    }
+
+    class CombatManager
+    {
+        private Random rand;
+
+        public CombatManager()
+        {
+            rand = new Random();
+        }
+
+        public void EnterCombatManagerCommand()
+        {
+            Console.WriteLine("Available Combat System Commands:\n" +
+                "<'battle' or 'b'>  - Choose a player to battle or train your ships\n" +
+                "<'players' or 'p'> - View other players to battle\n" +
+                "<'return' or 'r'>  - Return to main menu\n\n" +
+                "Enter command for Combat System:\n");
+            string[] command;
+            try
+            {
+                command = Console.ReadLine().Split(' ');
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid input was entered");
+                return;
+            }
+            Console.WriteLine();
+
+            if (command[0].ToLower() == "battle" || command[0].ToLower() == "b")
+            {
+
+            }
+            else if (command[0].ToLower() == "players" || command[0].ToLower() == "p")
+            {
+
+            }
+            else if (command[0].ToLower() == "return" || command[0].ToLower() == "r")
+            {
+
+            }
+            else
+            {
+                InvalidInput();
+            }
+        }
+
+        public void Battle(Ship[] fighters)
+        {
+            if (fighters.Length < 2)
+            {
+                Console.WriteLine("You must enter at least two fighters to battle");
+            }
+            for (int i = 0; i < fighters.Length; i++)
+            {
+                fighters[i].SetTempHealth(fighters[i].GetHealth());
+            }
+        }
+
+        public void Fire(Ship source, Weapon weapon, Ship target)
+        {
+            int speedDiff = source.GetSpeed() - target.GetSpeed(); // If + source is faster, if - target is faster
+            int hitChance = rand.Next(0, 100); // Random num between 0 and 100
+            int accuracy = weapon.GetAccuracy();
+
+            if (speedDiff > target.GetSpeed())
+            {
+                accuracy /= 2;
+            }
+            else if (speedDiff > 0)
+            {
+                accuracy -= (speedDiff/10);
+            }
+
+            if (hitChance <= accuracy)
+            {
+                takeDamage(target, weapon.GetPower());
+                Console.WriteLine("The " + source.GetName() + " has hit the " + target.GetName() + " with the " + weapon.GetName() + "\n");
+            }
+            else
+            {
+                Console.WriteLine("The " + source.GetName() + " has missed the " + target.GetName() + " with the " + weapon.GetName() + "\n");
+            }
+        }
+
+        public void Ram(Ship source, Ship target)
+        {
+            if(rand.Next(2) == 1)
+            {
+                takeDamage(target, source.GetWeight());
+            }
+            else
+            {
+                Console.WriteLine("The " + source.GetName() + " has missed the " + target.GetName() + " with it's ram attack\n");
+            }
+        }
+
+        public void takeDamage(Ship target, int damage)
+        {
+            target.SetTempHealth(target.GetTempHealth() - damage);
+            if (target.GetTempHealth() <= 0)
+            {
+                Console.WriteLine("The " + target.GetName() + " has been destroyed");
+                // Remove fighter from queue
+            }
+        }
+
+        public void InvalidInput()
+        {
+            Console.WriteLine("The entered input did not match any of the available commands\n");
+        }
+    }
+
+    class Player
+    {
+        private string name;
+        private string password;
+        private short level;
+        private Ship[] ships;
+
+        public Player(string name, string password)
+        {
+            this.name = name;
+            this.password = password;
+            this.level = 0;
+            this.ships = new Ship[5];
+        }
+
+        public string GetName()
+        {
+            return this.name;
+        }
+
+        public string GetPassword()
+        {
+            return this.password;
+        }
+
+        public Ship[] GetShips()
+        {
+            return this.ships;
+        }
+
+        public short GetLevel()
+        {
+            return this.level;
+        }
+
+        public void SetLevel(short level)
+        {
+            this.level = level;
+        }
+
+        public void PlaceShipInArray(Ship newShip)
+        {
+            for (int i = 0; i < GetShips().Length; i++)
+            {
+                if (GetShips()[i] == null)
+                {
+                    GetShips()[i] = newShip;
+                    Console.WriteLine("The " + newShip.GetName() + " is number " + (i + 1) + " in your armada\n");
+                    return;
+                }
+            }
+            Console.WriteLine("Your armada is full. Enter the number of the ship you would like to replace, or enter anything else to cancel ship creation:");
+            string command = Console.ReadLine();
+            if (int.TryParse(command, out int shipNum))
+            {
+                Console.WriteLine("\nThe " + GetShips()[shipNum - 1].GetName() + " has been replaced by The " + newShip.GetName() + "\n");
+                GetShips()[shipNum - 1] = newShip;
+            }
         }
     }
 
@@ -629,7 +879,7 @@ namespace King_Of_The_Sky
         private int tempHealth;
         private int armor;
         private int speed;
-        private int build_points;
+        private int weight;
         private Hull hull;
         private Cannon cannon;
         private Torpedo torpedo;
@@ -687,9 +937,9 @@ namespace King_Of_The_Sky
 
         public int GetSpeed()
         {
-            if (this.speed < 0)
+            if (speed - weight < 0)
                 return 0;
-            return this.speed;
+            return speed - weight;
         }
 
         public void SetSpeed(int speed)
@@ -697,14 +947,14 @@ namespace King_Of_The_Sky
             this.speed = speed;
         }
 
-        public int GetBuildPoints()
+        public int GetWeight()
         {
-            return this.build_points;
+            return this.weight;
         }
 
-        public void SetBuildPoints(int buildPoints)
+        public void SetWeight(int weight)
         {
-            this.build_points = build_points;
+            this.weight = weight;
         }
 
         public Hull GetHull()
@@ -781,11 +1031,11 @@ namespace King_Of_The_Sky
                 if (this.hull != null)
                 {
                     this.armor -= this.hull.GetArmor();
-                    this.speed += this.hull.GetWeight();
+                    this.weight -= this.hull.GetWeight();
                 }
                 this.hull = hull;
                 this.armor += hull.GetArmor();
-                this.speed -= hull.GetWeight();
+                this.weight += hull.GetWeight();
                 Console.WriteLine("The " + GetName() + " has the " + hull.GetName() + " Hull equipped\n");
             }
             else
@@ -800,10 +1050,10 @@ namespace King_Of_The_Sky
             {
                 if (this.cannon != null)
                 {
-                    this.speed += this.cannon.GetWeight();
+                    this.weight -= this.cannon.GetWeight();
                 }
                 this.cannon = cannon;
-                this.speed -= cannon.GetWeight();
+                this.weight += cannon.GetWeight();
                 Console.WriteLine("The " + GetName() + " has the " + cannon.GetName() + " cannon equipped\n");
             }
             else
@@ -818,10 +1068,10 @@ namespace King_Of_The_Sky
             {
                 if (this.torpedo != null)
                 {
-                    this.speed += this.torpedo.GetWeight();
+                    this.weight -= this.torpedo.GetWeight();
                 }
                 this.torpedo = torpedo;
-                this.speed -= torpedo.GetWeight();
+                this.weight += torpedo.GetWeight();
                 Console.WriteLine("The " + GetName() + " has the " + torpedo.GetName() + " torpedo equipped\n");
             }
             else
@@ -836,10 +1086,10 @@ namespace King_Of_The_Sky
             {
                 if (this.bomb != null)
                 {
-                    this.speed += this.bomb.GetWeight();
+                    this.weight -= this.bomb.GetWeight();
                 }
                 this.bomb = bomb;
-                this.speed -= bomb.GetWeight();
+                this.weight += bomb.GetWeight();
                 Console.WriteLine("The " + GetName() + " has the " + bomb.GetName() + " bomb equipped\n");
             }
             else
@@ -864,7 +1114,7 @@ namespace King_Of_The_Sky
             this.SetHealth(rand.Next(1000, 2000));
             this.SetArmor(rand.Next(10, 80));
             this.SetSpeed(rand.Next(100, 200));
-            this.SetBuildPoints(0);
+            this.SetWeight(0);
         }
     }
 
@@ -878,7 +1128,7 @@ namespace King_Of_The_Sky
             this.SetHealth(rand.Next(2500, 5000));
             this.SetArmor(rand.Next(100, 200));
             this.SetSpeed(rand.Next(10, 80));
-            this.SetBuildPoints(0);
+            this.SetWeight(0);
         }
     }
 
@@ -892,7 +1142,7 @@ namespace King_Of_The_Sky
             this.SetHealth(rand.Next(1500, 3000));
             this.SetArmor(rand.Next(50, 150));
             this.SetSpeed(rand.Next(50, 150));
-            this.SetBuildPoints(0);
+            this.SetWeight(0);
         }
     }
 
