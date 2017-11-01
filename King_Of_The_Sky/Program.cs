@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace King_Of_The_Sky
+namespace King_Of_Sky
 {
     class Program
     {
@@ -41,7 +41,7 @@ namespace King_Of_The_Sky
                 "<'build' or 'b'>  - Add ships to your armada\n" +
                 "<'combat' or 'c'> - Battle other ships or train your own\n" +
                 "<'quit' or 'q'>   - Close application\n\n" +
-                "Enter Command Below:");
+                "Enter Main Menu Command Below:");
             string[] command;
             try
             {
@@ -70,7 +70,7 @@ namespace King_Of_The_Sky
             {
                 combatManager.EnterCombatManagerCommand(playerManager);
             }
-            else if (command[0].ToLower() == "q" || command[0].ToLower() == "quit" || command[0] == "")
+            else if (command[0].ToLower() == "q" || command[0].ToLower() == "quit")
             {
                 ExitApplication();
             }
@@ -78,6 +78,7 @@ namespace King_Of_The_Sky
             {
                 InvalidInput();
             }
+            EnterCommand();
         }
 
         public PlayerManager GetPlayerManager()
@@ -267,7 +268,7 @@ namespace King_Of_The_Sky
         public void Welcome()
         {
             Console.WriteLine("/ * * * * * * * * * * * * * /\n" +
-                              " Welcome to King Of The Sky! \n" +
+                              "   Welcome to King Of Sky!   \n" +
                               "/ * * * * * * * * * * * * * /\n");
         }
 
@@ -669,7 +670,7 @@ namespace King_Of_The_Sky
             Cruiser c = new Cruiser(name);
             Console.WriteLine("You have built a new Cruiser named: The " + c.GetName() + "\n" +
                 "Stats:\n" +
-                "Health: " + c.GetHealth() + "\n" +
+                "Health: " + c.GetTotalHealth() + "\n" +
                 "Armor: " + c.GetArmor() + "\n" +
                 "Speed: " + c.GetSpeed() + "\n");
             return c;
@@ -680,7 +681,7 @@ namespace King_Of_The_Sky
             Glider g = new Glider(name);
             Console.WriteLine("You have built a new Glider named: The " + g.GetName() + "\n" +
                 "Stats:\n" +
-                "Health: " + g.GetHealth() + "\n" +
+                "Health: " + g.GetTotalHealth() + "\n" +
                 "Armor: " + g.GetArmor() + "\n" +
                 "Speed: " + g.GetSpeed() + "\n");
             return g;
@@ -691,7 +692,7 @@ namespace King_Of_The_Sky
             Bomber b = new Bomber(name);
             Console.WriteLine("You have built a new Bomber named: The " + b.GetName() + "\n" +
                 "Stats:\n" +
-                "Health: " + b.GetHealth() + "\n" +
+                "Health: " + b.GetTotalHealth() + "\n" +
                 "Armor: " + b.GetArmor() + "\n" +
                 "Speed: " + b.GetSpeed() + "\n");
             return b;
@@ -734,32 +735,26 @@ namespace King_Of_The_Sky
 
             if ((command[0].ToLower() == "battle" || command[0].ToLower() == "b") && command.Length == 1)
             {
-                Ship playersShip = ChoosePlayersShipForBattle(playerManager.GetCurrentPlayer(), playerManager.GetCurrentPlayer());
+                List<Battler> battlers = SelectBattlers(playerManager);
 
-                if (playersShip == null)
+                if(battlers.Count < 2)
                 {
-                    EnterCombatManagerCommand(playerManager);
+                    Console.WriteLine("You must select at least two battlers");
                     return;
                 }
 
-                Player opponent = ChooseOpponent(playerManager);
+                int startingPlayerIndex = rand.Next(0, battlers.Count);
+                Console.WriteLine("Captain " + battlers[startingPlayerIndex].GetPlayer().GetName() +
+                    " and The " + battlers[startingPlayerIndex].GetShip().GetName() + " will have the first move\n");
 
-                if (opponent == null)
+                while (battlers.Count > 1)
                 {
-                    EnterCombatManagerCommand(playerManager);
-                    return;
+                    EnterBattleCommand(battlers, startingPlayerIndex);
                 }
 
-                Ship opposingShip = ChoosePlayersShipForBattle(opponent, playerManager.GetCurrentPlayer());
+                Console.WriteLine("Captain " + battlers[0].GetPlayer().GetName() + " and The " + battlers[0].GetShip().GetName() + " win!\n");
+                battlers[0].GetShip().LevelUp();
 
-                if (opposingShip == null)
-                {
-                    EnterCombatManagerCommand(playerManager);
-                    return;
-                }
-
-                Ship[] fighters = { };
-                EnterBattleCommand(fighters);
                 return;
             }
             else if (command[0].ToLower() == "players" || command[0].ToLower() == "p")
@@ -777,13 +772,14 @@ namespace King_Of_The_Sky
             EnterCombatManagerCommand(playerManager);
         }
 
-        public void EnterBattleCommand(Ship[] fighters)
+        public void EnterBattleCommand(List<Battler> battlers, int playerIndex)
         {
-            Console.WriteLine("Available Commands:\n" +
-                    "<'ships' or 's'> - Lists the ships that the current player has available\n" +
-                    "<'{ship number}'> <'{ship number}'> - Starts a battle between the two provided ships\n" +
-                    "<'return' or 'r'> - Return to the Combat Manager Menu:\n\n" +
-                    "Choose two ships from your armada to train against each other by entering their numbers below:");
+            Console.WriteLine("Available Battle Commands:\n" +
+                    "<'fire' or 'f'> - Lists details about your ship's weapons" +
+                    "<'fire' or 'f'> <'cannon' or 'c' or 'torpedo' or 't' or 'bomb' or 'b'> - Fires the current ships input weapon\n" +
+                    "<'ram' or 'r'> - Attempts to ram the other ship\n" +
+                    "<'concede' or 'c'> - Forfeit the match\n\n" +
+                    "Enter Battle Command Below:");
 
             string[] command;
             try
@@ -797,9 +793,20 @@ namespace King_Of_The_Sky
                 return;
             }
 
-            for (int i = 0; i < fighters.Length; i++)
+            if (command.Length == 1)
             {
-                fighters[i].SetTempHealth(fighters[i].GetHealth());
+                if (command[0].ToLower() == "fire" || command[0].ToLower() == "f")
+                {
+                    battlers[playerIndex].GetShip().GetEquiptmentStats();
+                }
+                if (command[0].ToLower() == "ram" || command[0].ToLower() == "r")
+                {
+                    Ram(battlers[playerIndex].GetShip(), ChooseTarget(battlers).GetShip());
+                }
+                if (command[0].ToLower() == "concede" || command[0].ToLower() == "c")
+                {
+                    battlers.Remove(battlers[playerIndex]);
+                }
             }
         }
 
@@ -883,7 +890,7 @@ namespace King_Of_The_Sky
             }
         }
 
-        public Player ChooseOpponent(PlayerManager playerManager)
+        public Player ChooseOpponentToBattle(PlayerManager playerManager)
         {
             playerManager.ListAllPlayers();
             Console.WriteLine("Choose a player to battle by entering their number below:");
@@ -902,6 +909,81 @@ namespace King_Of_The_Sky
             }
         }
 
+        public Battler ChooseTarget(List<Battler> battlers)
+        {
+            Console.WriteLine("Available Targets:");
+            for (int i = 0; i < battlers.Count; i++)
+            {
+                Console.WriteLine((i+1) + ". Captain " + battlers[i].GetPlayer().GetName() + " and The " + battlers[i].GetShip().GetName());
+            }
+            Console.WriteLine("\nChoose Target:");
+            if (int.TryParse(Console.ReadLine(), out int targetIndex))
+            {
+                Console.WriteLine("\nCaptain " + battlers[targetIndex-1].GetPlayer().GetName() + " and The " + battlers[targetIndex-1].GetShip().GetName() + " selected as target\n");
+                return battlers[targetIndex - 1];
+            }
+            else
+            {
+                InvalidInput();
+                return ChooseTarget(battlers);
+            }
+        }
+
+        public void SetTempHealthToFull(List<Battler> battlers)
+        {
+            for (int i = 0; i < battlers.Count; i++)
+            {
+                battlers[i].GetShip().SetTempHealth(battlers[i].GetShip().GetTotalHealth());
+            }
+        }
+
+        public List<Battler> SelectBattlers(PlayerManager playerManager)
+        {
+            List<Battler> battlers = new List<Battler>();
+
+            Ship playersShip = ChoosePlayersShipForBattle(playerManager.GetCurrentPlayer(), playerManager.GetCurrentPlayer());
+            if (playersShip == null)
+            {
+                Console.WriteLine("Ship does not exist\n");
+                EnterCombatManagerCommand(playerManager);
+                return null;
+            }
+
+            battlers.Add(new Battler(playerManager.GetCurrentPlayer(), playersShip));
+
+            Player opponent = ChooseOpponentToBattle(playerManager);
+            if (opponent == null)
+            {
+                Console.WriteLine("Player does not exist\n");
+                EnterCombatManagerCommand(playerManager);
+                return null;
+            }
+
+            Ship opposingShip = ChoosePlayersShipForBattle(opponent, playerManager.GetCurrentPlayer());
+            if (opposingShip == null)
+            {
+                Console.WriteLine("Ship does not exist\n");
+                EnterCombatManagerCommand(playerManager);
+                return null;
+            }
+
+            battlers.Add(new Battler(opponent, opposingShip));
+
+            SetTempHealthToFull(battlers);
+
+            for (int i = 0; i < battlers.Count; i++)
+            {
+                Console.WriteLine("Captain " + battlers[i].GetPlayer().GetName() + " and The " + battlers[i].GetShip().GetName());
+                if (i != battlers.Count - 1)
+                {
+                    Console.WriteLine("< ***** Vs. ***** >");
+                }
+            }
+            Console.WriteLine();
+
+            return battlers;
+        }
+
         public void InvalidInput()
         {
             Console.WriteLine("The entered input did not match any of the available commands\n");
@@ -913,7 +995,7 @@ namespace King_Of_The_Sky
         private string name;
         private string password;
         private short level;
-        private Ship[] ships;
+        private Ship[] ships; 
 
         public Player(string name, string password)
         {
@@ -986,11 +1068,43 @@ namespace King_Of_The_Sky
         }
     }
 
+    class Battler
+    {
+        Player player;
+        Ship ship;
+
+        public Battler(Player player, Ship ship)
+        {
+            this.player = player;
+            this.ship = ship;
+        }
+
+        public Player GetPlayer()
+        {
+            return player;
+        }
+
+        public void SetPlayer(Player player)
+        {
+            this.player = player;
+        }
+
+        public Ship GetShip()
+        {
+            return ship;
+        }
+
+        public void SetShip(Ship ship)
+        {
+            this.ship = ship;
+        }
+    }
+
     class Ship
     {
         private string name;
         private short level;
-        private int health;
+        private int totalHealth;
         private int tempHealth;
         private int armor;
         private int speed;
@@ -1020,14 +1134,22 @@ namespace King_Of_The_Sky
             this.level = lvl;
         }
 
-        public int GetHealth()
+        public void LevelUp()
         {
-            return this.health;
+            short lvl = GetLevel();
+            lvl = lvl++;
+            SetLevel(lvl);
+            Console.WriteLine("Your ship leveled up to " + GetLevel() + "\n");
         }
 
-        public void SetHealth(int health)
+        public int GetTotalHealth()
         {
-            this.health = health;
+            return this.totalHealth;
+        }
+
+        public void SetTotalHealth(int totalHealth)
+        {
+            this.totalHealth = totalHealth;
         }
 
         public int GetTempHealth()
@@ -1094,12 +1216,12 @@ namespace King_Of_The_Sky
 
         public void GetStats()
         {
-            Console.WriteLine("The " + this.name + " is level " + this.level + " and has " + this.health + " health, " + this.armor + " armor, and " + this.speed + " speed");
+            Console.WriteLine("The " + this.name + " is level " + this.level + " and has " + this.totalHealth + " health, " + this.armor + " armor, and " + this.speed + " speed");
         }
 
         public void GetStats(int i)
         {
-            Console.WriteLine((i+1) + ". The " + this.GetName() + " is level " + this.GetLevel() + " and has " + this.GetHealth() + " health, " + this.GetArmor() + " armor, and " + this.GetSpeed() + " speed");
+            Console.WriteLine((i+1) + ". The " + this.GetName() + " is level " + this.GetLevel() + " and has " + this.GetTotalHealth() + " health, " + this.GetArmor() + " armor, and " + this.GetSpeed() + " speed");
         }
 
         public void GetEquiptmentStats()
@@ -1226,7 +1348,7 @@ namespace King_Of_The_Sky
             Random rand = new Random();
             this.SetName(name);
             this.SetLevel(0);
-            this.SetHealth(rand.Next(1000, 2000));
+            this.SetTotalHealth(rand.Next(1000, 2000));
             this.SetArmor(rand.Next(10, 80));
             this.SetSpeed(rand.Next(100, 200));
             this.SetWeight(0);
@@ -1240,7 +1362,7 @@ namespace King_Of_The_Sky
             Random rand = new Random();
             this.SetName(name);
             this.SetLevel(0);
-            this.SetHealth(rand.Next(2500, 5000));
+            this.SetTotalHealth(rand.Next(2500, 5000));
             this.SetArmor(rand.Next(100, 200));
             this.SetSpeed(rand.Next(10, 80));
             this.SetWeight(0);
@@ -1254,7 +1376,7 @@ namespace King_Of_The_Sky
             Random rand = new Random();
             this.SetName(name);
             this.SetLevel(0);
-            this.SetHealth(rand.Next(1500, 3000));
+            this.SetTotalHealth(rand.Next(1500, 3000));
             this.SetArmor(rand.Next(50, 150));
             this.SetSpeed(rand.Next(50, 150));
             this.SetWeight(0);
