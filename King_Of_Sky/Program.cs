@@ -817,23 +817,27 @@ namespace King_Of_Sky
 
             if ((command[0].ToLower() == "battle" || command[0].ToLower() == "b") && command.Length == 1)
             {
+                battlers = new List<Battler>();
                 battlers = SelectBattlers(playerManager);
 
-                if(battlers.Count < 2)
+                if (battlers != null)
                 {
-                    Console.WriteLine("You must select at least two battlers");
-                    return;
+                    if (battlers.Count < 2)
+                    {
+                        Console.WriteLine("You must select at least two battlers");
+                        return;
+                    }
+
+                    playerIndex = rand.Next(0, battlers.Count);
+                    Console.WriteLine("Captain " + battlers[playerIndex].GetPlayer().GetName() +
+                        " and The " + battlers[playerIndex].GetShip().GetName() + " will have the first move\n");
+
+                    // Start battle loop
+                    EnterBattleCommand();
+
+                    Console.WriteLine("Captain " + battlers[0].GetPlayer().GetName() + " and The " + battlers[0].GetShip().GetName() + " win!\n");
+                    battlers[0].GetShip().LevelUp();
                 }
-
-                playerIndex = rand.Next(0, battlers.Count);
-                Console.WriteLine("Captain " + battlers[playerIndex].GetPlayer().GetName() +
-                    " and The " + battlers[playerIndex].GetShip().GetName() + " will have the first move\n");
-
-                // Start battle loop
-                EnterBattleCommand();
-
-                Console.WriteLine("Captain " + battlers[0].GetPlayer().GetName() + " and The " + battlers[0].GetShip().GetName() + " win!\n");
-                battlers[0].GetShip().LevelUp();
 
                 return;
             }
@@ -849,6 +853,7 @@ namespace King_Of_Sky
             {
                 InvalidInput();
             }
+
             EnterCombatManagerCommand(playerManager);
         }
 
