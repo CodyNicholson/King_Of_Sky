@@ -51,6 +51,15 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Battler.cs" />
+    <Compile Include="src\CombatManager.cs" />
+    <Compile Include="src\CommandCenter.cs" />
+    <Compile Include="src\Player.cs" />
+    <Compile Include="src\PlayerManager.cs" />
+    <Compile Include="src\Ship.cs" />
+    <Compile Include="src\Equiptment.cs" />
+    <Compile Include="src\ShipFactory.cs" />
+    <Compile Include="src\ShipManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
